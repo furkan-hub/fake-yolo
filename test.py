@@ -91,51 +91,45 @@ def project_points(P, points):
 
     return image_points_2d
 
-def bbox_camera_sim(width,height,focus_lenght,camera_angles,cube_angles,cube_loc):
+def bbox_camera_sim(width, height, focus_length, camera_angles, cube_angles, cube_loc, cube_points):
     # Kamera özellikleri
     image_width = width   # görüntü genişliği
     image_height = height  # görüntü yüksekliği
-    focal_length = focus_lenght  # odak uzaklığı
-
-    # Dönüş açıları
-    camera_angles = camera_angles #x,y,z
-    cube_angles = cube_angles #x,y,z
-    cube_loc = cube_loc#x,y,z
+    focal_length = focus_length  # odak uzaklığı
 
     # Kamera projeksiyon matrisi
     P = rotate_camera(image_width, image_height, focal_length, camera_angles)
 
     # Dünya koordinatlarındaki küpün noktaları
-    cube_points = np.array([
-        [-0.5, -0.5, -0.5],  # sol alt ön köşe
-        [-0.5, -0.5, 0.5],   # sol alt arka köşe
-        [-0.5, 0.5, -0.5],   # sol üst ön köşe
-        [-0.5, 0.5, 0.5],    # sol üst arka köşe
-        [0.5, -0.5, -0.5],   # sağ alt ön köşe
-        [0.5, -0.5, 0.5],    # sağ alt arka köşe
-        [0.5, 0.5, -0.5],    # sağ üst ön köşe
-        [0.5, 0.5, 0.5]      # sağ üst arka köşe
-    ])
+    cube_points = cube_points
 
-    #döndür ve ötele
+    # Döndür ve ötele
     cube_points_camera = rotate_cube(cube_points, cube_angles, cube_loc)
     image_points = project_points(P, cube_points_camera)
 
     return image_points
 
+def draw_cube(image, cube_points):
+    # Çizilen küpün kenarlarını belirle
+    edges = [
+        (0, 1), (1, 3), (3, 2), (2, 0),
+        (4, 5), (5, 7), (7, 6), (6, 4),
+        (0, 4), (1, 5), (2, 6), (3, 7)
+    ]
+
+    for edge in edges:
+        cv2.line(image, tuple(cube_points[edge[0]].astype(int)), tuple(cube_points[edge[1]].astype(int)), (255, 255, 255), 2)
+
 def main():
     # Kamera özellikleri
     image_width = 640   # görüntü genişliği
     image_height = 480  # görüntü yüksekliği
-    focal_length = 120  # odak uzaklığı
+    focal_length = 100  # odak uzaklığı
 
     # Dönüş açıları
-    camera_angles = [0, 0, 180] #x,y,z
-    cube_angles = [0, 10, 20] #x,y,z
-    cube_loc = [0, 0, -5]#x,y,z
-
-    # Kamera projeksiyon matrisi
-    P = rotate_camera(image_width, image_height, focal_length, camera_angles)
+    camera_angles = [0, 0, 0] # x, y, z
+    cube_angles = [0, 0, 30] # x, y, z
+    cube_loc = [0, 0, 0]  # x, y, z
 
     # Dünya koordinatlarındaki küpün noktaları
     cube_points = np.array([
@@ -149,16 +143,13 @@ def main():
         [0.5, 0.5, 0.5]      # sağ üst arka köşe
     ])
 
-    #döndür ve ötele
-    cube_points_camera = rotate_cube(cube_points, cube_angles, cube_loc)
-    image_points = project_points(P, cube_points_camera)
-
-
     image = np.zeros((image_height, image_width, 3), dtype=np.uint8)
 
-    # Noktaları görüntü üzerine çiz
-    for point in image_points:
-        cv2.circle(image, tuple(point.astype(int)), 5, (255, 255, 255), -1)
+    # Kamera ve Küpü simüle et
+    image_points = bbox_camera_sim(image_width, image_height, focal_length, camera_angles, cube_angles, cube_loc, cube_points)
+
+    # Küpü çiz
+    draw_cube(image, image_points)
 
     # Sonucu göster
     cv2.imshow('Rotated Camera and Cube Projection', image)

@@ -14,7 +14,7 @@ uavs = [uav1,uav2]
 
 print("connected")
 
-
+fov = 60
 
 while True:
     
@@ -30,6 +30,7 @@ while True:
     loc2 = [float(telems[1]["iha_enlem"]),float(telems[1]["iha_boylam"]),float(telems[1]["iha_irtifa"])]# uav 2 için konum dizisi
     angl2 = [float(telems[1]["iha_dikilme"]),float(telems[1]["iha_yonelme"]),float(telems[1]["iha_yatis"])]
     cartesian_cords = LocationConverter_.relativeLoc(loc1,loc2)# iki nokta arasın da ki küresel kordinati kartezyen kordinata çevirme
+    cartesian_cords[1],cartesian_cords[2] = cartesian_cords[2], cartesian_cords[1]
    
     uav_1= {
         "roll":angl1[2],
@@ -50,9 +51,10 @@ while True:
     }
    
     #print(uav_1,uav_2)
-    
-    image_points = bbox_camera_sim(640,480,120,angl1,angl2,cartesian_cords)
-    print(image_points)
+    lenght = find_height(640,fov)
+
+    image_points = bbox_camera_sim(640,480,lenght,angl1,angl2,cartesian_cords)
+    print(cartesian_cords)
     
     image = np.zeros((480, 640, 3), dtype=np.uint8)
 

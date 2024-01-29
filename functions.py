@@ -32,6 +32,10 @@ class LocationConverter:
         disty=len3d(disty)*np.sign(loc2[0]-loc1[0])
         return [distx,disty,z]
 
+def find_height(base, angle):
+    height = base * math.tan(math.radians(angle/2))
+    return height
+
 def get_telem(uav):
     # Zaman bilgisini bir sözlükte saklayın
 
